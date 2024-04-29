@@ -1,0 +1,2 @@
+TEACHER_CHAT_ID = ""
+BOT_TOKEN = ""
