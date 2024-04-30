@@ -9,7 +9,7 @@ from time import sleep
 bot = TeleBot(token = BOT_TOKEN)
 
 
-                                        # функции для реализации сообщений учителю о учениках, которые имею низкие показатели успеваемост
+                                    # функции для реализации сообщений учителю о учениках, которые имею низкие показатели успеваемост
 def SendResultsMessage(self) -> list[tuple]:
     Arr_of_users_negative_results = []
 
@@ -35,8 +35,8 @@ def Send_Students_info_to_teacher():
         sleep(259200)
 
 # Запускаем поток для отправки сообщений
-message_thread = Thread(target = Send_Students_info_to_teacher)
-message_thread.start()
+# message_thread = Thread(target = Send_Students_info_to_teacher)
+# message_thread.start()
 
 
 
@@ -44,11 +44,13 @@ message_thread.start()
 # Команда /start
 @bot.message_handler(commands=['start', 'hello'])
 def start(message: Message) -> None:
-
     if str(message.chat.id) == TEACHER_CHAT_ID:
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         replace_CSV = "Заменить текущий csv лист"
-        markup.add(replace_CSV)
+        show_unsatisfactory_students_results = "показать сниженные результаты учеников"
+
+        markup.add(replace_CSV, show_unsatisfactory_students_results)
+        
         bot.send_message(message.chat.id, text = f"Здравствуйте, {message.from_user.first_name}😀", reply_markup = markup)
         return 
     
@@ -82,6 +84,16 @@ def handle_document(message: Message) -> None:
                 bot.send_message(message.chat.id, f"Произошла ошибка: {e}")
         else:
             bot.send_message(message.chat.id, "Вы отправили не CSV-файл.")
+
+        # возобновление вожможности пользоваться ReplyKeyboardMarkup
+        markup = ReplyKeyboardMarkup(resize_keyboard=True)
+        replace_CSV = "Заменить текущий csv лист"
+        show_unsatisfactory_students_results = "показать сниженные результаты учеников"
+        markup.add(replace_CSV, show_unsatisfactory_students_results)
+
+        bot.send_message(message.chat.id, "💥", reply_markup = markup)
+        
+        
     else:
         bot.send_message(message.chat.id, "Извините, но эта функция доступна только преподавателям.")
 
@@ -97,25 +109,37 @@ def replace_csv(message: Message) -> None:
     else:
         bot.send_message(message.chat.id, "Извините, но эта функция доступна только преподавателям.")
 
+@bot.message_handler(regexp = "показать сниженные результаты учеников")
+def replace_csv(message: Message) -> None:
+    if str(message.chat.id) == TEACHER_CHAT_ID:
+        bot.send_message(message.chat.id, "↴")
+        #
+        #
+        #   Функционал для показа учеников со сниженныими показателями посещения и тд.
+        #
+    else:
+        bot.send_message(message.chat.id, "Извините, но эта функция доступна только преподавателям.")
+
 
 
 
 
 
                                 # функционал ученика
-@bot.message_handler(regexp = "Показать мою статистику")       # получения имени пользователя 
+@bot.message_handler(regexp = "Показать мою статистику")    # получения имени пользователя 
 def student_stats(message: Message) -> None:
     bot.send_message(message.chat.id, "Введите ваше имя, фамилию и номер группы раздельно.")
+    bot.send_message(message.chat.id, "Для начала введите ваше имя: ", reply_markup = ReplyKeyboardRemove())
     bot.register_next_step_handler(message, get_name)
 
 def get_name(message: Message) -> None:
     student_name = message.text
-    bot.send_message(message.chat.id, "Теперь введите вашу фамилию")
+    bot.send_message(message.chat.id, "Теперь введите вашу фамилию: ")
     bot.register_next_step_handler(message, get_surname, student_name)
 
 def get_surname(message: Message, student_name: str) -> None:       # получения фамилии пользователя 
     student_surname = message.text
-    bot.send_message(message.chat.id, "Теперь введите номер вашей группы")
+    bot.send_message(message.chat.id, "Теперь введите номер вашей группы: ")
     bot.register_next_step_handler(message, get_group_number, student_name, student_surname)
 
 def get_group_number(message: Message, student_name: str, student_surname: str) -> None:        # получения номера группы от пользователя
@@ -127,7 +151,12 @@ def get_group_number(message: Message, student_name: str, student_surname: str) 
     # ...
 
     # После поиска статистики отправляем ее студенту
-    bot.send_message(message.chat.id, f"Ваша статистика готова!: {student_name} {student_surname} {student_group}")
+    
+    markup = ReplyKeyboardMarkup() # возращение возможности пользоваться ReplyKeyboardMarkup для ученика 
+    StudentStats = "Показать мою статистику"
+    markup.add(StudentStats)
+
+    bot.send_message(message.chat.id, f"Ваша статистика готова!: {student_name} {student_surname} {student_group}", reply_markup = markup)
 
 
 
