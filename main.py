@@ -1,4 +1,4 @@
-from threading import Thread
+from threading import Thread # этот можуль нужен только в случае, если мы собираемся добавлять отправку сообшений с определенныой переодичностью
 from telebot import TeleBot
 from telebot.types import Message, ReplyKeyboardMarkup, ReplyKeyboardRemove, Document
 from Config import TEACHER_CHAT_ID, BOT_TOKEN
